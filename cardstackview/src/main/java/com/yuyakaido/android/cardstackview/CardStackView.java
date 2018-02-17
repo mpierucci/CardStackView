@@ -28,10 +28,16 @@ public class CardStackView extends FrameLayout {
 
     public interface CardEventListener {
         void onCardDragging(float percentX, float percentY);
+
         void onCardSwiped(SwipeDirection direction);
+
         void onCardReversed();
+
         void onCardMovedToOrigin();
+
         void onCardClicked(int index);
+
+        void onDraggedDown();
     }
 
     private CardStackOption option = new CardStackOption();
@@ -59,10 +65,12 @@ public class CardStackView extends FrameLayout {
         public void onContainerDragging(float percentX, float percentY) {
             update(percentX, percentY);
         }
+
         @Override
         public void onContainerSwiped(Point point, SwipeDirection direction) {
             swipe(point, direction);
         }
+
         @Override
         public void onContainerMovedToOrigin() {
             initializeCardStackPosition();
@@ -70,12 +78,19 @@ public class CardStackView extends FrameLayout {
                 cardEventListener.onCardMovedToOrigin();
             }
         }
+
         @Override
         public void onContainerClicked() {
             if (cardEventListener != null) {
                 cardEventListener.onCardClicked(state.topIndex);
             }
         }
+
+        @Override
+        public void onSwipeToRevert() {
+            invertReverse();
+        }
+
     };
 
     public CardStackView(Context context) {
@@ -102,6 +117,7 @@ public class CardStackView extends FrameLayout {
         setRightOverlay(array.getResourceId(R.styleable.CardStackView_rightOverlay, 0));
         setBottomOverlay(array.getResourceId(R.styleable.CardStackView_bottomOverlay, 0));
         setTopOverlay(array.getResourceId(R.styleable.CardStackView_topOverlay, 0));
+        setSwipeToReverse(array.getInt(R.styleable.CardStackView_swipeToRevert, 0));
         array.recycle();
     }
 
@@ -268,10 +284,10 @@ public class CardStackView extends FrameLayout {
         } else if (direction == SwipeDirection.Right) {
             getTopView().showRightOverlay();
             getTopView().setOverlayAlpha(1f);
-        } else if (direction == SwipeDirection.Bottom){
+        } else if (direction == SwipeDirection.Bottom) {
             getTopView().showBottomOverlay();
             getTopView().setOverlayAlpha(1f);
-        } else if (direction == SwipeDirection.Top){
+        } else if (direction == SwipeDirection.Top) {
             getTopView().showTopOverlay();
             getTopView().setOverlayAlpha(1f);
         }
@@ -461,6 +477,13 @@ public class CardStackView extends FrameLayout {
         }
     }
 
+    public void setSwipeToReverse(int swipeDirection) {
+        option.swipeToReverse = swipeDirection;
+        if (adapter != null) {
+            initialize(false);
+        }
+    }
+
     public void setPaginationReserved() {
         state.isPaginationReserved = true;
     }
@@ -490,6 +513,21 @@ public class CardStackView extends FrameLayout {
             ViewGroup parent = containers.getLast();
             View prevView = adapter.getView(state.topIndex - 1, null, parent);
             performReverse(state.lastPoint, prevView, new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animator) {
+                    executePostReverseTask();
+                }
+            });
+        }
+    }
+
+    public void invertReverse() {
+        if (state.lastPoint != null) {
+            ViewGroup parent = containers.getLast();
+            View prevView = adapter.getView(state.topIndex - 1, null, parent);
+            Point revertPoint = null;
+
+            performReverse(Util.getSwipeToRevertPoint(option.swipeToReverse, parent), prevView, new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animator) {
                     executePostReverseTask();
