@@ -18,6 +18,6 @@ public class CardStackOption {
     public int bottomOverlay = 0; // Layout Resource ID
     public int topOverlay = 0; // Layout Resource ID
     public List<SwipeDirection> swipeDirection = SwipeDirection.FREEDOM;
-    public  @SwipeToRevert int swipeToReverseDirection = SwipeToRevert.BOTTOM;
+    public  @SwipeToRevert int swipeToReverseDirection = SwipeToRevert.TOP_TO_BOTTOM;
     public boolean isSwipeToRevertEnabled = false;
 }

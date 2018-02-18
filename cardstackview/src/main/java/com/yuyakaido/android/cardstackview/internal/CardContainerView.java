@@ -27,6 +27,7 @@ public class CardContainerView extends FrameLayout {
     private boolean isDragging = false;
     private boolean isDraggable = true;
     private boolean isSwipingToRevert = false;
+    private boolean isSwipingToRevertVerified = false;
 
     private ViewGroup contentContainer = null;
     private ViewGroup overlayContainer = null;
@@ -124,7 +125,7 @@ public class CardContainerView extends FrameLayout {
             Point point = Util.getTargetPoint(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
             Quadrant quadrant = Util.getQuadrant(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
             double radian = Util.getRadian(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
-            double degree = 0;
+            double degree;
             SwipeDirection direction = null;
             switch (quadrant) {
                 case TopLeft:
@@ -168,32 +169,29 @@ public class CardContainerView extends FrameLayout {
                     break;
             }
 
-            float percent = 0f;
-            if (direction == SwipeDirection.Left || direction == SwipeDirection.Right) {
-                percent = getPercentX();
-            } else {
-                percent = getPercentY();
-            }
-
-            if (option.isSwipeToRevertEnabled && wasSwipeToRevert(direction)) {
-               // if (Math.abs(percent) > option.swipeThreshold) { // TODO aca esta el problema por alguan raon percentage es cero
-                    moveToOrigin();
-                    if (containerEventListener != null) {
-                        containerEventListener.onSwipeToRevert();
-                    }
-               // }
-                /*
-                else {
-                    moveToOrigin();
-                    if (containerEventListener != null) {
-                        containerEventListener.onContainerMovedToOrigin();
-                    }
+            if (isSwipingToRevert && wasSwipeToRevert(direction)) { //TODO CHECK FOR THREAD HOLD
+                if (containerEventListener != null) {
+                    containerEventListener.onSwipeToRevert();
                 }
-                */
-            } else if (Math.abs(percent) > option.swipeThreshold) {
-                if (option.swipeDirection.contains(direction)) {
-                    if (containerEventListener != null) {
-                        containerEventListener.onContainerSwiped(point, direction);
+            } else {
+
+                float percent;
+                if (direction == SwipeDirection.Left || direction == SwipeDirection.Right) {
+                    percent = getPercentX();
+                } else {
+                    percent = getPercentY();
+                }
+
+                if (Math.abs(percent) > option.swipeThreshold) {
+                    if (option.swipeDirection.contains(direction)) {
+                        if (containerEventListener != null) {
+                            containerEventListener.onContainerSwiped(point, direction);
+                        }
+                    } else {
+                        moveToOrigin();
+                        if (containerEventListener != null) {
+                            containerEventListener.onContainerMovedToOrigin();
+                        }
                     }
                 } else {
                     moveToOrigin();
@@ -201,30 +199,26 @@ public class CardContainerView extends FrameLayout {
                         containerEventListener.onContainerMovedToOrigin();
                     }
                 }
-            } else {
-                moveToOrigin();
-                if (containerEventListener != null) {
-                    containerEventListener.onContainerMovedToOrigin();
-                }
             }
         }
 
         motionOriginX = event.getRawX();
         motionOriginY = event.getRawY();
-    }
 
-    //BORRAR
+        isSwipingToRevert = false;
+        isSwipingToRevertVerified = false;
+    }
 
     public boolean wasSwipeToRevert(SwipeDirection swipeDirection) {
         switch (swipeDirection) {
             case Top:
-                return option.swipeToReverseDirection == SwipeToRevert.TOP;
+                return option.swipeToReverseDirection == SwipeToRevert.BOTTOM_TO_TOP;
             case Bottom:
-                return option.swipeToReverseDirection == SwipeToRevert.BOTTOM;
+                return option.swipeToReverseDirection == SwipeToRevert.TOP_TO_BOTTOM;
             case Right:
-                return option.swipeToReverseDirection == SwipeToRevert.RIGHT;
+                return option.swipeToReverseDirection == SwipeToRevert.LEFT_TO_RIGHT;
             case Left:
-                return option.swipeToReverseDirection == SwipeToRevert.LEFT;
+                return option.swipeToReverseDirection == SwipeToRevert.RIGHT_TO_LEFT;
             default:
                 return false;
         }
@@ -233,16 +227,43 @@ public class CardContainerView extends FrameLayout {
     private void handleActionMove(MotionEvent event) {
         isDragging = true;
 
-        if (option.isSwipeToRevertEnabled) {
-            updateTranslationWithSwipeRevertEnabled(event);
-        } else {
-            updateTranslation(event);
-        }
-        updateRotation();
-        updateAlpha();
+        if (!isSwipingToRevertVerified) {
 
-        if (containerEventListener != null) {
-            containerEventListener.onContainerDragging(getPercentX(), getPercentY());
+            if (isMovingInSwipeTORevertDirection(event)) {
+                isSwipingToRevert = true;
+            }
+            isSwipingToRevertVerified = true;
+        }
+
+
+        if (!isSwipingToRevert) {
+            if (option.isSwipeToRevertEnabled) {
+                updateTranslationWithSwipeRevertEnabled(event);
+            } else {
+                updateTranslation(event);
+            }
+            updateRotation();
+            updateAlpha();
+
+            if (containerEventListener != null) {
+                containerEventListener.onContainerDragging(getPercentX(), getPercentY());
+            }
+        }
+
+    }
+
+    private boolean isMovingInSwipeTORevertDirection(MotionEvent event) {
+        switch (option.swipeToReverseDirection) {
+            case SwipeToRevert.BOTTOM_TO_TOP:
+                return motionOriginY > event.getRawY();
+            case SwipeToRevert.TOP_TO_BOTTOM:
+                return motionOriginY < event.getRawY();
+            case SwipeToRevert.RIGHT_TO_LEFT:
+                return motionOriginX > event.getRawX();
+            case SwipeToRevert.LEFT_TO_RIGHT:
+                return motionOriginX < event.getRawX();
+            default:
+                return false;
         }
     }
 
@@ -253,25 +274,25 @@ public class CardContainerView extends FrameLayout {
 
     private void updateTranslationWithSwipeRevertEnabled(MotionEvent event) {
         switch (option.swipeToReverseDirection) {
-            case SwipeToRevert.BOTTOM:
+            case SwipeToRevert.TOP_TO_BOTTOM:
                 if (motionOriginY > event.getRawY()) {
                     ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
                 }
                 ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
                 break;
-            case SwipeToRevert.TOP:
+            case SwipeToRevert.BOTTOM_TO_TOP:
                 if (motionOriginY < event.getRawY()) {
                     ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
                 }
                 ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
                 break;
-            case SwipeToRevert.LEFT:
+            case SwipeToRevert.RIGHT_TO_LEFT:
                 if (motionOriginX < event.getRawX()) {
                     ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
                 }
                 ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
                 break;
-            case SwipeToRevert.RIGHT:
+            case SwipeToRevert.LEFT_TO_RIGHT:
                 if (motionOriginX > event.getRawX()) {
                     ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
                 }

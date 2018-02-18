@@ -5,19 +5,19 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.BOTTOM;
-import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.LEFT;
-import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.RIGHT;
-import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.TOP;
+import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.RIGHT_TO_LEFT;
+import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.LEFT_TO_RIGHT;
+import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.BOTTOM_TO_TOP;
+import static com.yuyakaido.android.cardstackview.internal.SwipeToRevert.TOP_TO_BOTTOM;
 
 /**
  * Swipe to revert accepted values
  */
 @Retention(RetentionPolicy.SOURCE)
-@IntDef(value = {TOP, BOTTOM, RIGHT, LEFT})
+@IntDef(value = {BOTTOM_TO_TOP, TOP_TO_BOTTOM, LEFT_TO_RIGHT, RIGHT_TO_LEFT})
 public @interface SwipeToRevert {
-    int BOTTOM = 0;
-    int TOP = 1;
-    int RIGHT = 2;
-    int LEFT = 3;
+    int TOP_TO_BOTTOM = 0;
+    int BOTTOM_TO_TOP = 1;
+    int LEFT_TO_RIGHT = 2;
+    int RIGHT_TO_LEFT = 3;
 }

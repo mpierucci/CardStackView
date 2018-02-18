@@ -65,29 +65,15 @@ public class Util {
         }
     }
 
-    static @SwipeToRevert
-    int getSwipeDirection(float x1, float y1, float x2, float y2) {
-        Double angle = Math.toDegrees(Math.atan2(y1 - y2, x2 - x1));
-        if (angle > 60 && angle <= 110)
-            return SwipeToRevert.TOP;
-        if (angle >= 135 && angle < 225 || angle < -135 && angle > -225)
-            return SwipeToRevert.LEFT;
-        if (angle < -60 && angle >= -110)
-            return SwipeToRevert.BOTTOM;
-        if (angle > -45 && angle <= 45)
-            return SwipeToRevert.RIGHT;
-        return -1;
-    }
-
     public static Point getSwipeToRevertPoint(@SwipeToRevert int swipeToRevert, @NonNull View container) {
         switch (swipeToRevert) {
-            case SwipeToRevert.BOTTOM:
+            case SwipeToRevert.TOP_TO_BOTTOM:
                 return new Point(0, container.getHeight());
-            case SwipeToRevert.TOP:
+            case SwipeToRevert.BOTTOM_TO_TOP:
                 return new Point(0, -container.getHeight());
-            case SwipeToRevert.RIGHT:
+            case SwipeToRevert.LEFT_TO_RIGHT:
                 return new Point(-container.getWidth(), 0);
-            case SwipeToRevert.LEFT:
+            case SwipeToRevert.RIGHT_TO_LEFT:
                 return new Point(container.getWidth(), 0);
             default:
                 return new Point(0, 0);

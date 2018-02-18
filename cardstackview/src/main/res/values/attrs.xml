@@ -24,10 +24,10 @@
         <attr name="topOverlay" format="reference" />
         <attr name="swipeToRevertEnabled" format="boolean"/>
         <attr name="swipeToRevertDirection" format="enum">
-            <enum name="bottom" value="0" />
-            <enum name="top" value="1" />
-            <enum name="right" value="2" />
-            <enum name="left" value="3" />
+            <enum name="top_to_bottom" value="0" />
+            <enum name="bottom_to_top" value="1" />
+            <enum name="left_to_right" value="2" />
+            <enum name="right_to_left" value="3" />
         </attr>
     </declare-styleable>
 </resources>
