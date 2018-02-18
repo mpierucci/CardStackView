@@ -530,9 +530,6 @@ public class CardStackView extends FrameLayout {
                 @Override
                 public void onAnimationEnd(Animator animator) {
                     executePostReverseTask();
-                    if (cardEventListener != null) {
-                        cardEventListener.onCardReversed();
-                    }
                 }
             });
         }
