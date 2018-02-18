@@ -22,6 +22,8 @@
         app:stackFrom="top"
         app:elevationEnabled="true"
         app:swipeEnabled="true"
+        app:swipeToRevertDirection="top"
+        app:swipeToRevertEnabled="true"
         app:swipeDirection="freedom_no_bottom"
         app:leftOverlay="@layout/overlay_left"
         app:rightOverlay="@layout/overlay_right"

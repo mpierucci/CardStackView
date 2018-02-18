@@ -19,6 +19,7 @@ import android.widget.FrameLayout;
 import com.yuyakaido.android.cardstackview.internal.CardContainerView;
 import com.yuyakaido.android.cardstackview.internal.CardStackOption;
 import com.yuyakaido.android.cardstackview.internal.CardStackState;
+import com.yuyakaido.android.cardstackview.internal.SwipeToRevert;
 import com.yuyakaido.android.cardstackview.internal.Util;
 
 import java.util.LinkedList;
@@ -36,8 +37,6 @@ public class CardStackView extends FrameLayout {
         void onCardMovedToOrigin();
 
         void onCardClicked(int index);
-
-        void onDraggedDown();
     }
 
     private CardStackOption option = new CardStackOption();
@@ -117,7 +116,8 @@ public class CardStackView extends FrameLayout {
         setRightOverlay(array.getResourceId(R.styleable.CardStackView_rightOverlay, 0));
         setBottomOverlay(array.getResourceId(R.styleable.CardStackView_bottomOverlay, 0));
         setTopOverlay(array.getResourceId(R.styleable.CardStackView_topOverlay, 0));
-        setSwipeToReverse(array.getInt(R.styleable.CardStackView_swipeToRevert, 0));
+        setSwipeToReverse(array.getBoolean(R.styleable.CardStackView_swipeEnabled, false)
+                , array.getInt(R.styleable.CardStackView_swipeToRevertDirection, SwipeToRevert.BOTTOM));
         array.recycle();
     }
 
@@ -477,8 +477,9 @@ public class CardStackView extends FrameLayout {
         }
     }
 
-    public void setSwipeToReverse(int swipeDirection) {
-        option.swipeToReverse = swipeDirection;
+    public void setSwipeToReverse(boolean enabled, int swipeDirection) {
+        option.isSwipeToRevertEnabled = enabled;
+        option.swipeToReverseDirection = swipeDirection;
         if (adapter != null) {
             initialize(false);
         }
@@ -525,9 +526,7 @@ public class CardStackView extends FrameLayout {
         if (state.lastPoint != null) {
             ViewGroup parent = containers.getLast();
             View prevView = adapter.getView(state.topIndex - 1, null, parent);
-            Point revertPoint = null;
-
-            performReverse(Util.getSwipeToRevertPoint(option.swipeToReverse, parent), prevView, new AnimatorListenerAdapter() {
+            performReverse(Util.getSwipeToRevertPoint(option.swipeToReverseDirection, parent), prevView, new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animator) {
                     executePostReverseTask();

@@ -22,12 +22,12 @@
         <attr name="rightOverlay" format="reference" />
         <attr name="bottomOverlay" format="reference" />
         <attr name="topOverlay" format="reference" />
-        <attr name="swipeToRevert" format="enum">
-            <enum name="disabled" value="0" />
+        <attr name="swipeToRevertEnabled" format="boolean"/>
+        <attr name="swipeToRevertDirection" format="enum">
+            <enum name="bottom" value="0" />
             <enum name="top" value="1" />
-            <enum name="bottom" value="2" />
-            <enum name="right" value="3" />
-            <enum name="left" value="4" />
+            <enum name="right" value="2" />
+            <enum name="left" value="3" />
         </attr>
     </declare-styleable>
 </resources>

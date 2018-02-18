@@ -76,7 +76,7 @@ public class Util {
             return SwipeToRevert.BOTTOM;
         if (angle > -45 && angle <= 45)
             return SwipeToRevert.RIGHT;
-        return SwipeToRevert.DISABLED;
+        return -1;
     }
 
     public static Point getSwipeToRevertPoint(@SwipeToRevert int swipeToRevert, @NonNull View container) {
@@ -89,7 +89,6 @@ public class Util {
                 return new Point(-container.getWidth(), 0);
             case SwipeToRevert.LEFT:
                 return new Point(container.getWidth(), 0);
-            case SwipeToRevert.DISABLED:
             default:
                 return new Point(0, 0);
         }

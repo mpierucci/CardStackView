@@ -117,76 +117,83 @@ public class CardContainerView extends FrameLayout {
         if (isDragging) {
             isDragging = false;
 
-            if (isSwipingToRevert) {
-                containerEventListener.onSwipeToRevert();
-            } else {
-                float motionCurrentX = event.getRawX();
-                float motionCurrentY = event.getRawY();
 
-                Point point = Util.getTargetPoint(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
-                Quadrant quadrant = Util.getQuadrant(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
-                double radian = Util.getRadian(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
-                double degree = 0;
-                SwipeDirection direction = null;
-                switch (quadrant) {
-                    case TopLeft:
-                        degree = Math.toDegrees(radian);
-                        degree = 180 - degree;
-                        radian = Math.toRadians(degree);
-                        if (Math.cos(radian) < -0.5) {
-                            direction = SwipeDirection.Left;
-                        } else {
-                            direction = SwipeDirection.Top;
-                        }
-                        break;
-                    case TopRight:
-                        degree = Math.toDegrees(radian);
-                        radian = Math.toRadians(degree);
-                        if (Math.cos(radian) < 0.5) {
-                            direction = SwipeDirection.Top;
-                        } else {
-                            direction = SwipeDirection.Right;
-                        }
-                        break;
-                    case BottomLeft:
-                        degree = Math.toDegrees(radian);
-                        degree = 180 + degree;
-                        radian = Math.toRadians(degree);
-                        if (Math.cos(radian) < -0.5) {
-                            direction = SwipeDirection.Left;
-                        } else {
-                            direction = SwipeDirection.Bottom;
-                        }
-                        break;
-                    case BottomRight:
-                        degree = Math.toDegrees(radian);
-                        degree = 360 - degree;
-                        radian = Math.toRadians(degree);
-                        if (Math.cos(radian) < 0.5) {
-                            direction = SwipeDirection.Bottom;
-                        } else {
-                            direction = SwipeDirection.Right;
-                        }
-                        break;
-                }
+            float motionCurrentX = event.getRawX();
+            float motionCurrentY = event.getRawY();
 
-                float percent = 0f;
-                if (direction == SwipeDirection.Left || direction == SwipeDirection.Right) {
-                    percent = getPercentX();
-                } else {
-                    percent = getPercentY();
-                }
-
-                if (Math.abs(percent) > option.swipeThreshold) {
-                    if (option.swipeDirection.contains(direction)) {
-                        if (containerEventListener != null) {
-                            containerEventListener.onContainerSwiped(point, direction);
-                        }
+            Point point = Util.getTargetPoint(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
+            Quadrant quadrant = Util.getQuadrant(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
+            double radian = Util.getRadian(motionOriginX, motionOriginY, motionCurrentX, motionCurrentY);
+            double degree = 0;
+            SwipeDirection direction = null;
+            switch (quadrant) {
+                case TopLeft:
+                    degree = Math.toDegrees(radian);
+                    degree = 180 - degree;
+                    radian = Math.toRadians(degree);
+                    if (Math.cos(radian) < -0.5) {
+                        direction = SwipeDirection.Left;
                     } else {
-                        moveToOrigin();
-                        if (containerEventListener != null) {
-                            containerEventListener.onContainerMovedToOrigin();
-                        }
+                        direction = SwipeDirection.Top;
+                    }
+                    break;
+                case TopRight:
+                    degree = Math.toDegrees(radian);
+                    radian = Math.toRadians(degree);
+                    if (Math.cos(radian) < 0.5) {
+                        direction = SwipeDirection.Top;
+                    } else {
+                        direction = SwipeDirection.Right;
+                    }
+                    break;
+                case BottomLeft:
+                    degree = Math.toDegrees(radian);
+                    degree = 180 + degree;
+                    radian = Math.toRadians(degree);
+                    if (Math.cos(radian) < -0.5) {
+                        direction = SwipeDirection.Left;
+                    } else {
+                        direction = SwipeDirection.Bottom;
+                    }
+                    break;
+                case BottomRight:
+                    degree = Math.toDegrees(radian);
+                    degree = 360 - degree;
+                    radian = Math.toRadians(degree);
+                    if (Math.cos(radian) < 0.5) {
+                        direction = SwipeDirection.Bottom;
+                    } else {
+                        direction = SwipeDirection.Right;
+                    }
+                    break;
+            }
+
+            float percent = 0f;
+            if (direction == SwipeDirection.Left || direction == SwipeDirection.Right) {
+                percent = getPercentX();
+            } else {
+                percent = getPercentY();
+            }
+
+            if (option.isSwipeToRevertEnabled && wasSwipeToRevert(direction)) {
+               // if (Math.abs(percent) > option.swipeThreshold) { // TODO aca esta el problema por alguan raon percentage es cero
+                    moveToOrigin();
+                    if (containerEventListener != null) {
+                        containerEventListener.onSwipeToRevert();
+                    }
+               // }
+                /*
+                else {
+                    moveToOrigin();
+                    if (containerEventListener != null) {
+                        containerEventListener.onContainerMovedToOrigin();
+                    }
+                }
+                */
+            } else if (Math.abs(percent) > option.swipeThreshold) {
+                if (option.swipeDirection.contains(direction)) {
+                    if (containerEventListener != null) {
+                        containerEventListener.onContainerSwiped(point, direction);
                     }
                 } else {
                     moveToOrigin();
@@ -194,35 +201,83 @@ public class CardContainerView extends FrameLayout {
                         containerEventListener.onContainerMovedToOrigin();
                     }
                 }
+            } else {
+                moveToOrigin();
+                if (containerEventListener != null) {
+                    containerEventListener.onContainerMovedToOrigin();
+                }
             }
+        }
 
-            motionOriginX = event.getRawX();
-            motionOriginY = event.getRawY();
+        motionOriginX = event.getRawX();
+        motionOriginY = event.getRawY();
+    }
+
+    //BORRAR
+
+    public boolean wasSwipeToRevert(SwipeDirection swipeDirection) {
+        switch (swipeDirection) {
+            case Top:
+                return option.swipeToReverseDirection == SwipeToRevert.TOP;
+            case Bottom:
+                return option.swipeToReverseDirection == SwipeToRevert.BOTTOM;
+            case Right:
+                return option.swipeToReverseDirection == SwipeToRevert.RIGHT;
+            case Left:
+                return option.swipeToReverseDirection == SwipeToRevert.LEFT;
+            default:
+                return false;
         }
     }
 
     private void handleActionMove(MotionEvent event) {
         isDragging = true;
 
-        if (option.swipeToReverse != SwipeToRevert.DISABLED) {
-          isSwipingToRevert =  Util.
-                  getSwipeDirection(motionOriginX, motionOriginY, event.getRawX(), event.getRawY()) == option.swipeToReverse;
-        }
-
-        if (!isSwipingToRevert) {
+        if (option.isSwipeToRevertEnabled) {
+            updateTranslationWithSwipeRevertEnabled(event);
+        } else {
             updateTranslation(event);
-            updateRotation();
-            updateAlpha();
+        }
+        updateRotation();
+        updateAlpha();
 
-            if (containerEventListener != null) {
-                containerEventListener.onContainerDragging(getPercentX(), getPercentY());
-            }
+        if (containerEventListener != null) {
+            containerEventListener.onContainerDragging(getPercentX(), getPercentY());
         }
     }
 
     private void updateTranslation(MotionEvent event) {
         ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
         ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
+    }
+
+    private void updateTranslationWithSwipeRevertEnabled(MotionEvent event) {
+        switch (option.swipeToReverseDirection) {
+            case SwipeToRevert.BOTTOM:
+                if (motionOriginY > event.getRawY()) {
+                    ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
+                }
+                ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
+                break;
+            case SwipeToRevert.TOP:
+                if (motionOriginY < event.getRawY()) {
+                    ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
+                }
+                ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
+                break;
+            case SwipeToRevert.LEFT:
+                if (motionOriginX < event.getRawX()) {
+                    ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
+                }
+                ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
+                break;
+            case SwipeToRevert.RIGHT:
+                if (motionOriginX > event.getRawX()) {
+                    ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
+                }
+                ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
+                break;
+        }
     }
 
     private void updateRotation() {
