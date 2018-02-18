@@ -22,7 +22,7 @@
         app:stackFrom="top"
         app:elevationEnabled="true"
         app:swipeEnabled="true"
-        app:swipeToRevertDirection="top"
+        app:swipeToRevertDirection="top_to_bottom"
         app:swipeToRevertEnabled="true"
         app:swipeDirection="freedom_no_bottom"
         app:leftOverlay="@layout/overlay_left"

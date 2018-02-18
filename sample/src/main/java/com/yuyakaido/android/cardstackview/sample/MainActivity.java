@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.yuyakaido.android.cardstackview.CardStackView;
 import com.yuyakaido.android.cardstackview.SwipeDirection;
@@ -119,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCardReversed() {
                 Log.d("CardStackView", "onCardReversed");
+                Toast.makeText(MainActivity.this,"bingo",Toast.LENGTH_SHORT).show();
             }
 
             @Override

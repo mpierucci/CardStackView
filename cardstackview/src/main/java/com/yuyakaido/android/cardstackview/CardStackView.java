@@ -87,7 +87,7 @@ public class CardStackView extends FrameLayout {
 
         @Override
         public void onSwipeToRevert() {
-            invertReverse();
+            swipeReverse();
         }
 
     };
@@ -522,7 +522,7 @@ public class CardStackView extends FrameLayout {
         }
     }
 
-    public void invertReverse() {
+    private void swipeReverse() {
         if (state.lastPoint != null) {
             ViewGroup parent = containers.getLast();
             View prevView = adapter.getView(state.topIndex - 1, null, parent);
@@ -530,6 +530,9 @@ public class CardStackView extends FrameLayout {
                 @Override
                 public void onAnimationEnd(Animator animator) {
                     executePostReverseTask();
+                    if (cardEventListener != null) {
+                        cardEventListener.onCardReversed();
+                    }
                 }
             });
         }

@@ -209,7 +209,7 @@ public class CardContainerView extends FrameLayout {
         isSwipingToRevertVerified = false;
     }
 
-    public boolean wasSwipeToRevert(SwipeDirection swipeDirection) {
+    private boolean wasSwipeToRevert(SwipeDirection swipeDirection) {
         switch (swipeDirection) {
             case Top:
                 return option.swipeToReverseDirection == SwipeToRevert.BOTTOM_TO_TOP;
