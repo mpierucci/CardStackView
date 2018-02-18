@@ -19,6 +19,7 @@ import com.yuyakaido.android.cardstackview.SwipeDirection;
 public class CardContainerView extends FrameLayout {
 
     private CardStackOption option;
+    private SwipeToRevertDelegate swipeToRevertDelegate;
 
     private float viewOriginX = 0f;
     private float viewOriginY = 0f;
@@ -26,8 +27,6 @@ public class CardContainerView extends FrameLayout {
     private float motionOriginY = 0f;
     private boolean isDragging = false;
     private boolean isDraggable = true;
-    private boolean isSwipingToRevert = false;
-    private boolean isSwipingToRevertVerified = false;
 
     private ViewGroup contentContainer = null;
     private ViewGroup overlayContainer = null;
@@ -169,7 +168,7 @@ public class CardContainerView extends FrameLayout {
                     break;
             }
 
-            if (isSwipingToRevert && wasSwipeToRevert(direction)) { //TODO CHECK FOR THREAD HOLD
+            if (swipeToRevertDelegate.shouldSwipeAndRevert(direction)) { //TODO CHECK FOR THREAD HOLD
                 if (containerEventListener != null) {
                     containerEventListener.onSwipeToRevert();
                 }
@@ -205,40 +204,18 @@ public class CardContainerView extends FrameLayout {
         motionOriginX = event.getRawX();
         motionOriginY = event.getRawY();
 
-        isSwipingToRevert = false;
-        isSwipingToRevertVerified = false;
+        swipeToRevertDelegate.swipeActionFinished();
     }
 
-    private boolean wasSwipeToRevert(SwipeDirection swipeDirection) {
-        switch (swipeDirection) {
-            case Top:
-                return option.swipeToReverseDirection == SwipeToRevert.BOTTOM_TO_TOP;
-            case Bottom:
-                return option.swipeToReverseDirection == SwipeToRevert.TOP_TO_BOTTOM;
-            case Right:
-                return option.swipeToReverseDirection == SwipeToRevert.LEFT_TO_RIGHT;
-            case Left:
-                return option.swipeToReverseDirection == SwipeToRevert.RIGHT_TO_LEFT;
-            default:
-                return false;
-        }
-    }
 
     private void handleActionMove(MotionEvent event) {
         isDragging = true;
 
-        if (!isSwipingToRevertVerified) {
-
-            if (isMovingInSwipeTORevertDirection(event)) {
-                isSwipingToRevert = true;
-            }
-            isSwipingToRevertVerified = true;
-        }
-
-
-        if (!isSwipingToRevert) {
-            if (option.isSwipeToRevertEnabled) {
-                updateTranslationWithSwipeRevertEnabled(event);
+        swipeToRevertDelegate.shouldLockSwiping(event, motionOriginX, motionOriginY);
+        if (!swipeToRevertDelegate.isSwipingToRevert) {
+            if (swipeToRevertDelegate.swipeToRevertEnabled) {
+                swipeToRevertDelegate.updateCardTranslation(event, this, viewOriginX,
+                        viewOriginY, motionOriginX, motionOriginY);
             } else {
                 updateTranslation(event);
             }
@@ -252,53 +229,9 @@ public class CardContainerView extends FrameLayout {
 
     }
 
-    private boolean isMovingInSwipeTORevertDirection(MotionEvent event) {
-        switch (option.swipeToReverseDirection) {
-            case SwipeToRevert.BOTTOM_TO_TOP:
-                return motionOriginY > event.getRawY();
-            case SwipeToRevert.TOP_TO_BOTTOM:
-                return motionOriginY < event.getRawY();
-            case SwipeToRevert.RIGHT_TO_LEFT:
-                return motionOriginX > event.getRawX();
-            case SwipeToRevert.LEFT_TO_RIGHT:
-                return motionOriginX < event.getRawX();
-            default:
-                return false;
-        }
-    }
-
     private void updateTranslation(MotionEvent event) {
         ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
         ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
-    }
-
-    private void updateTranslationWithSwipeRevertEnabled(MotionEvent event) {
-        switch (option.swipeToReverseDirection) {
-            case SwipeToRevert.TOP_TO_BOTTOM:
-                if (motionOriginY > event.getRawY()) {
-                    ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
-                }
-                ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
-                break;
-            case SwipeToRevert.BOTTOM_TO_TOP:
-                if (motionOriginY < event.getRawY()) {
-                    ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
-                }
-                ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
-                break;
-            case SwipeToRevert.RIGHT_TO_LEFT:
-                if (motionOriginX < event.getRawX()) {
-                    ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
-                }
-                ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
-                break;
-            case SwipeToRevert.LEFT_TO_RIGHT:
-                if (motionOriginX > event.getRawX()) {
-                    ViewCompat.setTranslationX(this, viewOriginX + event.getRawX() - motionOriginX);
-                }
-                ViewCompat.setTranslationY(this, viewOriginY + event.getRawY() - motionOriginY);
-                break;
-        }
     }
 
     private void updateRotation() {
@@ -343,6 +276,7 @@ public class CardContainerView extends FrameLayout {
 
     public void setCardStackOption(CardStackOption option) {
         this.option = option;
+        swipeToRevertDelegate = new SwipeToRevertDelegate(option);
     }
 
     public void setDraggable(boolean isDraggable) {

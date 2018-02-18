@@ -116,7 +116,7 @@ public class CardStackView extends FrameLayout {
         setRightOverlay(array.getResourceId(R.styleable.CardStackView_rightOverlay, 0));
         setBottomOverlay(array.getResourceId(R.styleable.CardStackView_bottomOverlay, 0));
         setTopOverlay(array.getResourceId(R.styleable.CardStackView_topOverlay, 0));
-        setSwipeToReverse(array.getBoolean(R.styleable.CardStackView_swipeEnabled, false)
+        setSwipeToReverse(array.getBoolean(R.styleable.CardStackView_swipeToRevertEnabled, false)
                 , array.getInt(R.styleable.CardStackView_swipeToRevertDirection, SwipeToRevert.TOP_TO_BOTTOM));
         array.recycle();
     }
